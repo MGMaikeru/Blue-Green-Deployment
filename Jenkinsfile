@@ -1,6 +1,9 @@
 pipeline {
     agent any
-        
+    tools {
+        maven 'maven3'
+    }
+    
     parameters {
         choice(name: 'DEPLOY_ENV', choices: ['blue', 'green'], description: 'Choose which environment to deploy: Blue or Green')
         choice(name: 'DOCKER_TAG', choices: ['blue', 'green'], description: 'Choose the Docker image tag for the deployment')
@@ -9,12 +12,20 @@ pipeline {
     
     environment {
         IMAGE_NAME = "premd91/bankapp"
-        TAG = "${params.DOCKER_TAG}"  // The image tag now comes from the parameter
+        //TAG = "${params.DOCKER_TAG}"  // The image tag now comes from the parameter
         KUBE_NAMESPACE = 'webapps'
         SCANNER_HOME= tool 'sonar-scanner'
     }
 
     stages {
+        stage('Set Tag') {
+            steps {
+                script {
+                    env.TAG = params.DOCKER_TAG
+                }
+            }
+        }
+
         stage('Git Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/MGMaikeru/Blue-Green-Deployment.git'
@@ -23,6 +34,7 @@ pipeline {
         
         stage('SonarQube Analysis') {
             steps {
+                echo "Entrando al análisis de SonarQube"
                 withSonarQubeEnv('sonar') {
                     sh "$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectKey=nodejsmysql -Dsonar.projectName=nodejsmysql"
                 }
