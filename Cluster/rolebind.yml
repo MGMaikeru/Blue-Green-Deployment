@@ -10,4 +10,4 @@ roleRef:
 subjects:
   - namespace: webapps
     kind: ServiceAccount
-    name: Jenkins
+    name: jenkins
